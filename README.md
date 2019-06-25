@@ -66,8 +66,9 @@ class ContentType(StrEnum, converter=lambda s: s.replace('_', '/', 1), sep='-'):
     audio_ogg: str
     
     
-print(f'In RFC 2046 "{ContentType.application_octet_stream}"" is defined as "arbitrary binary data"')
-# In RFC 2046 "application/octet-stream" is defined as "arbitrary binary data"# 
+print(f'In RFC 2046 "{ContentType.application_octet_stream}"' 
+      f'is defined as "arbitrary binary data"')
+# In RFC 2046 "application/octet-stream" is defined as "arbitrary binary data"
 ```
 As you can see from an example, first the name will be converted with our lambda function and then, 
 remaining underscores will be replaced with given separator
@@ -75,12 +76,15 @@ remaining underscores will be replaced with given separator
 ## Filtering enum members
 ###### Using enums from previous examples
 ```python
-print(*ContentType.filter(contains='-', startswith='a', endswith='m'), sep=', ')
+result = ContentType.filter(contains='-', startswith='a', endswith='m')
+print(*result, sep=', ')
 # application/octet-stream, application/x-json-stream
 
-print(*ContentType.filter(contained_in='Usually content type for MP3 audio is audio/mpeg'))
+result = ContentType.filter(contained_in='Usually content type for MP3 is audio/mpeg')
+print(*result, sep=', ')
 # audio/mpeg
 
-print(*Region.filter(startswith='eu', endswith='1'), sep=', ')
+result = Region.filter(startswith='eu', endswith='1')
+print(*result, sep=', ')
 # eu-central-1, eu-west-1
 ```
