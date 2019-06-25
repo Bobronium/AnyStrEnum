@@ -118,17 +118,17 @@ def test_search():
 
 def test_wrong_member_types():
     with pytest.raises(TypeError) as e:
-        class MyShinyStrEnum(StrEnum):
+        class FakeShinyStrEnum(StrEnum):
             foo: MyShinyStr  # This line will cause an exception
 
-        print(MyShinyStrEnum)
+        print(FakeShinyStrEnum)
     assert str(e.value) == "Unexpected type MyShinyStr, allowed type: str"
 
     with pytest.raises(TypeError) as e:
-        class MyShinyBytesEnum(BytesEnum):
+        class FakeShinyBytesEnum(BytesEnum):
             bar: MyShinyBytes  # This line will cause an exception
 
-        print(MyShinyBytesEnum)
+        print(FakeShinyBytesEnum)
     assert str(e.value) == "Unexpected type MyShinyBytes, allowed type: bytes"
 
     with pytest.raises(TypeError) as e:
