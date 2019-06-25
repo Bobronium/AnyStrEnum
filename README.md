@@ -2,7 +2,7 @@
 [![Python 3.7](https://img.shields.io/badge/Python%203.7-blue.svg)](https://python.org) 
 [![PyPi Package Version](https://img.shields.io/pypi/v/AnyStrEnum.svg)](https://pypi.python.org/pypi/AnyStrEnum)
 
-Elegant implementation of Enum that inherits from str or bytes
+Elegant implementation of Enum which inherits from str or bytes
  
 # Features
 - Easy assignment with type hinting (No need to use auto() or another stubs)
