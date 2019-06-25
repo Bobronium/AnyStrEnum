@@ -1,4 +1,4 @@
-# StrEnum
+# AnyStrEnum
 [![Python 3.7](https://img.shields.io/badge/Python%203.7-blue.svg)](https://python.org) 
 [![PyPi Package Version](https://img.shields.io/pypi/v/AnyStrEnum.svg)](https://pypi.python.org/pypi/AnyStrEnum)
 
@@ -32,7 +32,7 @@ print(isinstance(Season.summer, str))
 # True
 ```
 
-##Using custom words separator
+## Using custom words separator
 ```python
 from anystrenum import StrEnum
 
@@ -53,7 +53,7 @@ print(f'If you just specify the general endpoint,\n'
 # Amazon directs your request to the us-east-1 endpoint'
 ```
 
-##Using str converter and custom words separator
+## Using str converter and custom words separator
 ```python
 from anystrenum import StrEnum
 
@@ -73,7 +73,7 @@ As you can see from an example, first the name will be converted with our lambda
 remaining underscores will be replaced with given separator
 
 ## Filtering enum members
-######Using enums from previous examples
+###### Using enums from previous examples
 ```python
 print(*ContentType.filter(contains='-', startswith='a', endswith='m'), sep=', ')
 # application/octet-stream, application/x-json-stream
