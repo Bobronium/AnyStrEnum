@@ -1,0 +1,52 @@
+[tool.poetry]
+name = "AnyStrEnum"
+version = "0.1.0"
+description = "Elegant implementation of Enum which inherits from str or bytes"
+license = "MIT"
+authors = ["MrMrRobat <appkiller16@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[tool.dephell.main]
+from = {format = "poetry", path = "pyproject.toml"}
+to = {format = "setuppy", path = "setup.py"}
+
+[tool.dephell.pytest]
+from = {format = "poetry", path = "pyproject.toml"}
+tests = ["test_anystrenum.py"]
+command = "pytest"
