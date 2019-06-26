@@ -1,6 +1,6 @@
 import abc
 from enum import Enum, EnumMeta, _EnumDict, auto
-from typing import List, Callable, AnyStr, Set, TypeVar, Union, Type, Any
+from typing import List, Callable, AnyStr, Set, TypeVar, Type, Any
 
 SEP_ATTR = "__sep__"
 CONVERTER_ATTR = "__converter__"
@@ -135,7 +135,7 @@ class AnyStrEnumMeta(EnumMeta):
         return super().__new__(mcs, cls, bases, new_class_dict)
 
     @staticmethod
-    def check_type_equals(type_to_check: Union[TypeVar, Type[Any]], allowed_type: Type[Any]):
+    def check_type_equals(type_to_check: Any, allowed_type: Type[Any]):
         if isinstance(type_to_check, TypeVar):
             if len(type_to_check.__constraints__) > 1:
                 raise TypeError(f'Only {allowed_type.__name__} is allowed, '
