@@ -3,19 +3,6 @@
 [![PyPi Package Version](https://img.shields.io/pypi/v/AnyStrEnum.svg)](https://pypi.python.org/pypi/AnyStrEnum)
 
 Elegant implementation of Enum which inherits from str or bytes
- 
-# Features
-- Easy assignment with type hinting (No need to use auto() or another stubs)
-- Automatic name generation with support of custom converters or separators
-- Method to filter members (contains, contained_by, startswith, endswith)
-- Custom str and bytes types support
-
-# Installation
-```bash
-$ pip install AnyStrEnum
-```
-
-# Examples
 ## As simple as this
 ```python
 from anystrenum import StrEnum
@@ -32,6 +19,18 @@ print(isinstance(Season.summer, str))
 # True
 ```
 
+# Features
+- Easy assignment with type hinting (No need to use auto() or another stubs)
+- Automatic name generation with support of custom converters or separators
+- Method to filter members (contains, contained_by, startswith, endswith)
+- Custom str and bytes types support
+
+# Installation
+```bash
+$ pip install AnyStrEnum
+```
+
+# Examples
 ## Using custom words separator
 To automatically replace all underscores (`_`) in names to something more suitable, use `sep` parameter:
 ```python
