@@ -30,8 +30,6 @@ setup(
     description='Elegant implementation of Enum which inherits from str or bytes',
     long_description=README,
     long_description_content_type='text/markdown',
-    tests_require=['pytest'],
-    setup_requires=["pytest-runner"],
     url='https://github.com/MrMrRobat/AnyStrEnum',
     packages=find_packages(),
     license='MIT',
