@@ -37,8 +37,8 @@ release:
 	make clean
 	make test
 	make clean
-	make build
 	dephell project bump --tag release
+	make build
 
 fake-release:
 	make clean
