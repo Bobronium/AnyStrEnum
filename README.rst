@@ -1,3 +1,4 @@
+
 AnyStrEnum
 ==========
 
@@ -13,25 +14,6 @@ AnyStrEnum
 
 
 Elegant implementation of Enum which inherits from str or bytes
-
-Features
-========
-
-
-* Easy assignment with type hinting (No need to use auto() or another stubs)
-* Automatic name generation with support of custom converters or separators
-* Method to filter members (contains, contained_by, startswith, endswith)
-* Custom str and bytes types support
-
-Installation
-============
-
-.. code-block:: bash
-
-   $ pip install AnyStrEnum
-
-Examples
-========
 
 As simple as this
 -----------------
@@ -51,8 +33,29 @@ As simple as this
    # summer
    # True
 
+Features
+========
+
+
+* Easy members assignment with type hinting (No need to use ``auto()`` or other stubs)
+* Automatic value generation with support of custom converters or separators
+* Method to filter members (\ ``contains``\ , ``contained_in``\ , ``startswith``\ , ``endswith``\ , etc.)
+* Custom ``str`` and ``bytes`` types support
+
+Installation
+============
+
+.. code-block:: bash
+
+   $ pip install AnyStrEnum
+
+Examples
+========
+
 Using custom words separator
 ----------------------------
+
+To automatically replace all underscores (\ ``_``\ ) in names to something more suitable, use ``sep`` parameter:
 
 .. code-block:: python
 
@@ -68,14 +71,13 @@ Using custom words separator
        eu_north_2: str
        sa_east_1: str
 
-
-   print(f'If you just specify the general endpoint,\n'
-         f'Amazon directs your request to the {Region.us_east_1} endpoint')
-   # If you just specify the general endpoint, 
-   # Amazon directs your request to the us-east-1 endpoint'
+   print(Region.us_east_1)
+   # us-east-1
 
 Using str converter and custom words separator
 ----------------------------------------------
+
+If you need to apply to your names more changes, you can use ``converter`` parameter. Pass a function in here which will be called on every member
 
 .. code-block:: python
 
@@ -89,12 +91,10 @@ Using str converter and custom words separator
        audio_pcm: str
        audio_ogg: str
 
+   print(ContentType.application_octet_stream)
+   # application/octet-stream
 
-   print(f'In RFC 2046 "{ContentType.application_octet_stream}"' 
-         f'is defined as "arbitrary binary data"')
-   # In RFC 2046 "application/octet-stream" is defined as "arbitrary binary data"
-
-As you can see from an example, first the name will be converted with our lambda function and then, 
+As you can see from an example, firstly, names will be converted with our lambda function and then, 
 remaining underscores will be replaced with given separator
 
 Filtering enum members
@@ -105,14 +105,12 @@ Using enums from previous examples
 
 .. code-block:: python
 
-   result = ContentType.filter(contains='-', startswith='a', endswith='m')
-   print(*result, sep=', ')
-   # application/octet-stream, application/x-json-stream
+   print(ContentType.filter(contains='-', startswith='a', endswith='m'))
+   # {<ContentType.application_octet_stream: 'application/octet-stream'>, 
+   # <ContentType.application_x_json_stream: 'application/x-json-stream'>}
 
-   result = ContentType.filter(contained_in='Usually content type for MP3 is audio/mpeg')
-   print(*result, sep=', ')
-   # audio/mpeg
+   print(ContentType.filter(contained_in='Usually content type for MP3 is audio/mpeg'))
+   # {<ContentType.audio_mpeg: 'audio/mpeg'>}
 
-   result = Region.filter(startswith='eu', endswith='1')
-   print(*result, sep=', ')
-   # eu-central-1, eu-west-1
+   print(Region.filter(startswith='eu', endswith='1'))
+   # {<Region.eu_west_1: 'eu-west-1'>, <Region.eu_central_1: 'eu-central-1'>}

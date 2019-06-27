@@ -20,10 +20,10 @@ print(isinstance(Season.summer, str))
 ```
 
 # Features
-- Easy assignment with type hinting (No need to use auto() or another stubs)
-- Automatic name generation with support of custom converters or separators
-- Method to filter members (contains, contained_by, startswith, endswith)
-- Custom str and bytes types support
+- Easy members assignment with type hinting (No need to use `auto()` or other stubs)
+- Automatic value generation with support of custom converters or separators
+- Method to filter members (`contains`, `contained_in`, `startswith`, `endswith`, etc.)
+- Custom `str` and `bytes` types support
 
 # Installation
 ```bash
@@ -46,7 +46,6 @@ class Region(StrEnum, sep='-'):
     eu_north_2: str
     sa_east_1: str
     
-    
 print(Region.us_east_1)
 # us-east-1
 ```
@@ -63,7 +62,6 @@ class ContentType(StrEnum, converter=lambda s: s.replace('_', '/', 1), sep='-'):
     audio_mpeg: str
     audio_pcm: str
     audio_ogg: str
-    
     
 print(ContentType.application_octet_stream)
 # application/octet-stream
