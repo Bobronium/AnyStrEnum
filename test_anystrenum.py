@@ -226,3 +226,19 @@ def test_wrong_mixins():
         assert str(
             e.value
         ) == f'Unexpected Enum type \'{enum_name}\'. Only BaseAnyStrEnum and its subclasses are allowed'
+
+
+def test_inflection():
+    class CamelStrEmun(CamelizeStrEnum):
+        camel_case: str
+        foo_bar: str
+
+    assert CamelStrEmun.camel_case == 'CamelCase'
+    assert CamelStrEmun.foo_bar == 'FooBar'
+
+    class CamelBytesEnum(CamelizeByteEnum):
+        camel_case: bytes
+        foo_bar: bytes
+
+    assert CamelBytesEnum.camel_case == b'CamelCase'
+    assert CamelBytesEnum.foo_bar == b'FooBar'

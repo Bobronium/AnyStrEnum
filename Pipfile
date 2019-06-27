@@ -7,6 +7,7 @@ verify_ssl = true
 pytest = "*"
 
 [packages]
+inflection = "*"
 
 [requires]
 python_version = "3.6"

@@ -38,5 +38,5 @@ setup(
     packages=['anystrenum'],
     package_data={},
     install_requires=[],
-    extras_require={'dev': ['pytest']},
+    extras_require={'inflection': ['inflection'], 'tests': ['pytest'], 'dev': ['pytest']},
 )

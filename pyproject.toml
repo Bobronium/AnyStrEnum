@@ -20,9 +20,14 @@ keywords = [
 
 [tool.poetry.dependencies]
 python = ">=3.6"
+inflection = {optional = true,version = "*"}
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
+
+[tool.poetry.extras]
+tests = ["pytest"]
+inflection = ["inflection"]
 
 
 [tool.dephell.main]
@@ -31,6 +36,7 @@ to = {format = "setuppy", path = "setup.py"}
 
 [tool.dephell.pytest]
 from = {format = "poetry", path = "pyproject.toml"}
+envs = ["main", "inflection"]
 tests = ["test_anystrenum.py"]
 command = "pytest"
 

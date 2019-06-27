@@ -1,8 +1,4 @@
-VENV_NAME := venv
-PYTHON := $(VENV_NAME)/bin/python
-VERSION := $(shell $(PYTHON) -c "import anystrenum;print(anystrenum.__version__)")
 TEST_PYPI :=  https://test.pypi.org/legacy/
-
 RM := rm -rf
 
 mkvenv:
@@ -20,10 +16,16 @@ convert:
 	dephell deps convert --from=pyproject.toml --to Pipfile
 
 build:
+	make convert
+	dephell project build
+	make clean
 	python3 setup.py sdist bdist_wheel
 
 test:
-	dephell project test --env=pytest
+	make build
+	dephell venv run --env=pytest pip install .
+	dephell venv run --env=pytest pip install inflection
+	dephell venv run --env=pytest pytest
 
 upload:
 	twine upload dist/*
@@ -40,9 +42,7 @@ release:
 
 fake-release:
 	make clean
-	dephell project bump release
 	make test
-	make clean
 	dephell project bump pre
 	make build
 	make test-upload
