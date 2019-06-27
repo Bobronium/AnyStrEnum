@@ -3,19 +3,6 @@
 [![PyPi Package Version](https://img.shields.io/pypi/v/AnyStrEnum.svg)](https://pypi.python.org/pypi/AnyStrEnum)
 
 Elegant implementation of Enum which inherits from str or bytes
- 
-# Features
-- Easy assignment with type hinting (No need to use auto() or another stubs)
-- Automatic name generation with support of custom converters or separators
-- Method to filter members (contains, contained_by, startswith, endswith)
-- Custom str and bytes types support
-
-# Installation
-```bash
-$ pip install AnyStrEnum
-```
-
-# Examples
 ## As simple as this
 ```python
 from anystrenum import StrEnum
@@ -32,7 +19,20 @@ print(isinstance(Season.summer, str))
 # True
 ```
 
+# Features
+- Easy assignment with type hinting (No need to use auto() or another stubs)
+- Automatic name generation with support of custom converters or separators
+- Method to filter members (contains, contained_by, startswith, endswith)
+- Custom str and bytes types support
+
+# Installation
+```bash
+$ pip install AnyStrEnum
+```
+
+# Examples
 ## Using custom words separator
+To automatically replace all underscores (`_`) in names to something more suitable, use `sep` parameter:
 ```python
 from anystrenum import StrEnum
 
@@ -47,13 +47,12 @@ class Region(StrEnum, sep='-'):
     sa_east_1: str
     
     
-print(f'If you just specify the general endpoint,\n'
-      f'Amazon directs your request to the {Region.us_east_1} endpoint')
-# If you just specify the general endpoint, 
-# Amazon directs your request to the us-east-1 endpoint'
+print(Region.us_east_1)
+# us-east-1
 ```
 
 ## Using str converter and custom words separator
+If you need to apply to your names more changes, you can use `converter` parameter. Pass a function in here which will be called on every member
 ```python
 from anystrenum import StrEnum
 
@@ -66,11 +65,10 @@ class ContentType(StrEnum, converter=lambda s: s.replace('_', '/', 1), sep='-'):
     audio_ogg: str
     
     
-print(f'In RFC 2046 "{ContentType.application_octet_stream}"' 
-      f'is defined as "arbitrary binary data"')
-# In RFC 2046 "application/octet-stream" is defined as "arbitrary binary data"
+print(ContentType.application_octet_stream)
+# application/octet-stream
 ```
-As you can see from an example, first the name will be converted with our lambda function and then, 
+As you can see from an example, firstly, names will be converted with our lambda function and then, 
 remaining underscores will be replaced with given separator
 
 ## Filtering enum members
