@@ -17,7 +17,7 @@ class BaseStrEnumItem(metaclass=abc.ABCMeta):
         self.converter = converter
 
     @abc.abstractmethod
-    def convert(self, name: str) -> AnyStr:
+    def generate_value(self, name: str) -> AnyStr:
         pass
 
 
@@ -99,34 +99,36 @@ class AnyStrEnumMeta(EnumMeta):
                             f'Only str, bytes and their subclasses are allowed')
 
         # Resolving Item class for mixin_type
-        item_type = class_dict.get(ITEM_TYPE_ATTR, base_enum.__item_type__)
+        item_type: Type[BaseStrEnumItem] = class_dict.get(ITEM_TYPE_ATTR, base_enum.__item_type__)
         if item_type is None:
             raise NotImplementedError(f'{cls} must implement {ITEM_TYPE_ATTR}')
         elif not issubclass(item_type, BaseStrEnumItem):
             raise TypeError(f'{item_type.__name__} must be type of {BaseStrEnumItem.__name__}')
 
-        # Trying to get sep and converter from class dict and base classes
+        # Trying to get sep and converter from class dict and base enum class
         if sep is None:
             sep = class_dict.get(SEP_ATTR) or base_enum.__sep__
         if converter is None:
             converter = class_dict.get(CONVERTER_ATTR) or base_enum.__converter__
 
-        item = item_type(sep=sep, converter=converter)
+        item: BaseStrEnumItem = item_type(sep=sep, converter=converter)
 
         new_class_dict = _EnumDict()
         for name, type_hint in class_dict.get('__annotations__', {}).items():
             if name.startswith('_') or name in class_dict:
                 continue
             mcs.check_type_equals(type_hint, mixin_type)
-            value = item.convert(name)
+            value = item.generate_value(name)
             new_class_dict[name] = value
             mcs.check_type_equals(type(value), mixin_type)
 
         for name, value in class_dict.items():
             if isinstance(value, BaseStrEnumItem):
-                value = value.convert(name)
+                value = value.generate_value(name)
             elif isinstance(value, auto):
-                value = item.convert(name)
+                value = item.generate_value(name)
+            if not name.startswith('_'):
+                mcs.check_type_equals(type(value), mixin_type)
 
             new_class_dict[name] = value
 
@@ -159,7 +161,7 @@ class StrItem(BaseStrEnumItem):
         self.sep = sep
         self.converter = converter
 
-    def convert(self, name: str) -> str:
+    def generate_value(self, name: str) -> str:
         if self.converter:
             name = self.converter(name)
         if self.sep:
@@ -175,7 +177,7 @@ class BytesItem(BaseStrEnumItem):
         self.sep = sep
         self.converter = converter
 
-    def convert(self, name: str) -> bytes:
+    def generate_value(self, name: str) -> bytes:
         name = bytes(name, 'utf8')
 
         if self.converter:

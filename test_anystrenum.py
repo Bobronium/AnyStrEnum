@@ -2,8 +2,8 @@ from enum import auto, IntEnum, Enum
 
 import pytest
 
-from anystrenum import StrEnum, BaseAnyStrEnum, BytesEnum, AnyStrEnumMeta, auto_str, StrItem
-from anystrenum.anystrenum import BytesItem
+from anystrenum import StrEnum, BaseAnyStrEnum, BytesEnum, AnyStrEnumMeta, auto_str, StrItem, BytesItem
+from anystrenum.inflected import CamelizeByteEnum, CamelizeStrEnum
 
 
 class Weekday(StrEnum):
@@ -25,7 +25,7 @@ def test_basic_str_enum():
 
 
 class CapitalizeStrEnum(StrEnum, converter=lambda s: str.capitalize(s)):
-    pass
+    ...
 
 
 class CoolGuy(CapitalizeStrEnum):
@@ -142,10 +142,10 @@ def test_wrong_member_types():
     with pytest.raises(TypeError) as e:
         class MyShinyBytesStrEnum(MyShinyBytes, BaseAnyStrEnum, metaclass=AnyStrEnumMeta):
             __item_type__ = BytesItem
-            oh_noo: str  # And this
+            oh_noo: bytes  # And this
 
         print(MyShinyBytesStrEnum)
-    assert str(e.value) == 'Unexpected type str, allowed type: MyShinyBytes'
+    assert str(e.value) == 'Unexpected type bytes, allowed type: MyShinyBytes'
 
 
 class MyShinyStr(str):
@@ -159,13 +159,13 @@ class MyShinyBytes(bytes):
 
 
 class MyShinyStrItem(StrItem):
-    def convert(self, name: str) -> MyShinyStr:
-        return MyShinyStr(super().convert(name))
+    def generate_value(self, name: str) -> MyShinyStr:
+        return MyShinyStr(super().generate_value(name))
 
 
 class MyShinyBytesItem(BytesItem):
-    def convert(self, name: str) -> MyShinyBytes:
-        return MyShinyBytes(super().convert(name))
+    def generate_value(self, name: str) -> MyShinyBytes:
+        return MyShinyBytes(super().generate_value(name))
 
 
 class MyShinyStrEnum(MyShinyStr, BaseAnyStrEnum, metaclass=AnyStrEnumMeta):
@@ -193,6 +193,7 @@ def test_custom_member_types():
 
     assert isinstance(BytesFooBar.bar, MyShinyBytes)
     assert isinstance(BytesFooBar.bar, bytes)
+    assert BytesFooBar.bar == b'bar'
     assert BytesFooBar.bar.shout() == b'BAR!!!'
 
 
