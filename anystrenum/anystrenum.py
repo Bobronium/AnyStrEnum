@@ -22,6 +22,9 @@ class BaseStrEnumItem(metaclass=abc.ABCMeta):
 
 
 class BaseAnyStrEnum(Enum):
+    __sep__: AnyStr = None
+    __converter__: Callable[[str], AnyStr] = None
+    __item_type__: Type[BaseStrEnumItem] = None
 
     @classmethod
     def filter(cls,
@@ -87,16 +90,16 @@ class AnyStrEnumMeta(EnumMeta):
         return super().__prepare__(*args, **kwargs)
 
     def __new__(mcs, cls, bases, class_dict, sep: AnyStr = None, converter: Callable[[AnyStr], AnyStr] = None):
-        mixin_type, enum_type = mcs._get_mixins_(bases)
-        if not issubclass(enum_type, BaseAnyStrEnum):
-            raise TypeError(f'Unexpected Enum type \'{enum_type.__name__}\'. '
+        mixin_type, base_enum = mcs._get_mixins_(bases)
+        if not issubclass(base_enum, BaseAnyStrEnum):
+            raise TypeError(f'Unexpected Enum type \'{base_enum.__name__}\'. '
                             f'Only {BaseAnyStrEnum.__name__} and its subclasses are allowed')
         elif not issubclass(mixin_type, (str, bytes)):
             raise TypeError(f'Unexpected mixin type \'{mixin_type.__name__}\'. '
                             f'Only str, bytes and their subclasses are allowed')
 
         # Resolving Item class for mixin_type
-        item_type = class_dict.get(ITEM_TYPE_ATTR, getattr(enum_type, ITEM_TYPE_ATTR, None))
+        item_type = class_dict.get(ITEM_TYPE_ATTR, base_enum.__item_type__)
         if item_type is None:
             raise NotImplementedError(f'{cls} must implement {ITEM_TYPE_ATTR}')
         elif not issubclass(item_type, BaseStrEnumItem):
@@ -104,33 +107,32 @@ class AnyStrEnumMeta(EnumMeta):
 
         # Trying to get sep and converter from class dict and base classes
         if sep is None:
-            sep = class_dict.get(SEP_ATTR) or getattr(enum_type, SEP_ATTR, None)
+            sep = class_dict.get(SEP_ATTR) or base_enum.__sep__
         if converter is None:
-            converter = class_dict.get(CONVERTER_ATTR) or getattr(enum_type, CONVERTER_ATTR, None)
+            converter = class_dict.get(CONVERTER_ATTR) or base_enum.__converter__
 
-        item_converter = item_type(sep=sep, converter=converter)
+        item = item_type(sep=sep, converter=converter)
 
         new_class_dict = _EnumDict()
         for name, type_hint in class_dict.get('__annotations__', {}).items():
             if name.startswith('_') or name in class_dict:
                 continue
             mcs.check_type_equals(type_hint, mixin_type)
-            value = item_converter.convert(name)
+            value = item.convert(name)
             new_class_dict[name] = value
             mcs.check_type_equals(type(value), mixin_type)
 
         for name, value in class_dict.items():
             if isinstance(value, BaseStrEnumItem):
                 value = value.convert(name)
-                mcs.check_type_equals(type(value), mixin_type)
             elif isinstance(value, auto):
-                value = item_converter.convert(name)
-                mcs.check_type_equals(type(value), mixin_type)
+                value = item.convert(name)
 
             new_class_dict[name] = value
 
         new_class_dict[SEP_ATTR] = sep
         new_class_dict[CONVERTER_ATTR] = converter
+        new_class_dict[ITEM_TYPE_ATTR] = item_type
 
         return super().__new__(mcs, cls, bases, new_class_dict)
 
@@ -189,6 +191,8 @@ auto_bytes = BytesItem
 
 
 class StrEnum(str, BaseAnyStrEnum, metaclass=AnyStrEnumMeta):
+    __sep__: str = None
+    __converter__: Callable[[str], str] = None
     __item_type__ = StrItem
 
     def __str__(self):
@@ -196,7 +200,9 @@ class StrEnum(str, BaseAnyStrEnum, metaclass=AnyStrEnumMeta):
 
 
 class BytesEnum(bytes, BaseAnyStrEnum, metaclass=AnyStrEnumMeta):
-    __item_type__ = BytesItem
+    __sep__: bytes = None
+    __converter__: Callable[[bytes], bytes] = None
+    __item_type__: Type[BaseStrEnumItem] = BytesItem
 
     def __str__(self):
         return str(self.value)
