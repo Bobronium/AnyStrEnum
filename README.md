@@ -74,15 +74,13 @@ remaining underscores will be replaced with given separator
 ## Filtering enum members
 ###### Using enums from previous examples
 ```python
-result = ContentType.filter(contains='-', startswith='a', endswith='m')
-print(*result, sep=', ')
-# application/octet-stream, application/x-json-stream
+print(ContentType.filter(contains='-', startswith='a', endswith='m'))
+# {<ContentType.application_octet_stream: 'application/octet-stream'>, 
+# <ContentType.application_x_json_stream: 'application/x-json-stream'>}
 
-result = ContentType.filter(contained_in='Usually content type for MP3 is audio/mpeg')
-print(*result, sep=', ')
-# audio/mpeg
+print(ContentType.filter(contained_in='Usually content type for MP3 is audio/mpeg'))
+# {<ContentType.audio_mpeg: 'audio/mpeg'>}
 
-result = Region.filter(startswith='eu', endswith='1')
-print(*result, sep=', ')
-# eu-central-1, eu-west-1
+print(Region.filter(startswith='eu', endswith='1'))
+# {<Region.eu_west_1: 'eu-west-1'>, <Region.eu_central_1: 'eu-central-1'>}
 ```
