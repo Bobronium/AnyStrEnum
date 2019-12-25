@@ -1,30 +1,73 @@
 import abc
-from enum import Enum, EnumMeta, _EnumDict, auto
-from typing import List, Callable, AnyStr, Set, TypeVar, Type, Any
+from enum import Enum as FastEnum, EnumMeta, _EnumDict, auto
+from enum import Enum
+from typing import List, Callable, AnyStr, Set, Type, Any
 
-SEP_ATTR = "__sep__"
-CONVERTER_ATTR = "__converter__"
-ITEM_TYPE_ATTR = '__item_type__'
-
-
-class BaseStrEnumItem(metaclass=abc.ABCMeta):
-    sep: AnyStr
-    converter: Callable[[AnyStr], AnyStr]
-
-    @abc.abstractmethod
-    def __init__(self, sep: AnyStr = None, converter: Callable[[AnyStr], AnyStr] = None):
-        self.sep = sep
-        self.converter = converter
-
-    @abc.abstractmethod
-    def generate_value(self, name: str) -> AnyStr:
-        pass
+VALUES_GENERATOR_ATTR = '__values_generator__'
 
 
-class BaseAnyStrEnum(Enum):
-    __sep__: AnyStr = None
-    __converter__: Callable[[str], AnyStr] = None
-    __item_type__: Type[BaseStrEnumItem] = None
+class BaseTypedEnum(Enum):
+    __values_generator__: Callable[[str], Any]
+
+
+class TypedEnumMeta(EnumMeta):
+    # It's here to avoid 'got an unexpected keyword argument' TypeError
+    @classmethod
+    def __prepare__(mcs, *args, converter: Callable[[AnyStr], AnyStr] = None, **kwargs):
+        return super().__prepare__(*args, **kwargs)
+
+    def __new__(mcs, cls, bases, class_dict, converter: Callable[[AnyStr], AnyStr] = None):
+        mixin_type, base_enum = mcs._get_mixins_(bases)
+        if not issubclass(base_enum, BaseTypedEnum):
+            raise TypeError(f'Unexpected Enum type \'{base_enum.__name__}\'. '
+                            f'Only {BaseTypedEnum.__name__} and its subclasses are allowed')
+
+        for name, type_hint in class_dict.get('__annotations__', {}).items():
+            if name.startswith('_'):
+                continue
+            mcs.check_type_equals(type_hint, mixin_type)
+            if name not in class_dict:
+                class_dict[name] = auto()  # so it will be processed in _generate_next_value_
+
+        return super().__new__(mcs, cls, bases, new_class_dict)
+
+    @staticmethod
+    def check_type_equals(type_to_check: Any, allowed_type: Type[Any]):
+        if type_to_check is not allowed_type:
+            raise TypeError(f'Unexpected type {getattr(type_to_check, "__name__", type_to_check)}'
+                            f', allowed type: {allowed_type.__name__}')
+
+    @staticmethod
+    def _get_mixins_(bases):
+        """
+        Returns true member_type
+        """
+        if not bases:
+            return object, Enum
+
+        def _find_data_type(bases):
+            for chain in bases:
+                for base in chain.__mro__:
+                    if base is object:
+                        continue
+                    # changed from 'elif '__new__' in base.__dict__`, as it was skipping subclasses of base type
+                    elif hasattr(base, '__new__') and not issubclass(base, Enum):
+                        return base
+
+        # ensure final parent class is an Enum derivative, find any concrete
+        # data type, and check that Enum has no members
+        first_enum = bases[-1]
+        if not issubclass(first_enum, Enum):
+            raise TypeError("new enumerations should be created as "
+                            "`EnumName([mixin_type, ...] [data_type,] enum_type)`")
+        member_type = _find_data_type(bases) or object
+        if first_enum._member_names_:
+            raise TypeError("Cannot extend enumerations")
+        return member_type, first_enum
+
+
+class BaseAnyStrEnum(BaseTypedEnum):
+    __values_generator__: Callable[[str], AnyStr] = None
 
     @classmethod
     def filter(cls,
@@ -79,132 +122,34 @@ class BaseAnyStrEnum(Enum):
 
         return found
 
-    def _generate_next_value_(*_):
-        return auto()
 
+class StrEnum(str, BaseAnyStrEnum, metaclass=TypedEnumMeta):
+    __values_generator__: Callable[[str], str] = None
 
-class AnyStrEnumMeta(EnumMeta):
-    # It's here to avoid 'got an unexpected keyword argument' TypeError
     @classmethod
-    def __prepare__(mcs, *args, sep: AnyStr = None, converter: Callable[[AnyStr], AnyStr] = None, **kwargs):
-        return super().__prepare__(*args, **kwargs)
-
-    def __new__(mcs, cls, bases, class_dict, sep: AnyStr = None, converter: Callable[[AnyStr], AnyStr] = None):
-        mixin_type, base_enum = mcs._get_mixins_(bases)
-        if not issubclass(base_enum, BaseAnyStrEnum):
-            raise TypeError(f'Unexpected Enum type \'{base_enum.__name__}\'. '
-                            f'Only {BaseAnyStrEnum.__name__} and its subclasses are allowed')
-        elif not issubclass(mixin_type, (str, bytes)):
-            raise TypeError(f'Unexpected mixin type \'{mixin_type.__name__}\'. '
-                            f'Only str, bytes and their subclasses are allowed')
-
-        # Resolving Item class for mixin_type
-        item_type: Type[BaseStrEnumItem] = class_dict.get(ITEM_TYPE_ATTR, base_enum.__item_type__)
-        if item_type is None:
-            raise NotImplementedError(f'{cls} must implement {ITEM_TYPE_ATTR}')
-        elif not issubclass(item_type, BaseStrEnumItem):
-            raise TypeError(f'{item_type.__name__} must be type of {BaseStrEnumItem.__name__}')
-
-        # Trying to get sep and converter from class dict and base enum class
-        if sep is None:
-            sep = class_dict.get(SEP_ATTR) or base_enum.__sep__
-        if converter is None:
-            converter = class_dict.get(CONVERTER_ATTR) or base_enum.__converter__
-
-        item: BaseStrEnumItem = item_type(sep=sep, converter=converter)
-
-        new_class_dict = _EnumDict()
-        for name, type_hint in class_dict.get('__annotations__', {}).items():
-            if name.startswith('_') or name in class_dict:
-                continue
-            mcs.check_type_equals(type_hint, mixin_type)
-            value = item.generate_value(name)
-            new_class_dict[name] = value
-            mcs.check_type_equals(type(value), mixin_type)
-
-        for name, value in class_dict.items():
-            if isinstance(value, BaseStrEnumItem):
-                value = value.generate_value(name)
-            elif isinstance(value, auto):
-                value = item.generate_value(name)
-            if not name.startswith('_'):
-                mcs.check_type_equals(type(value), mixin_type)
-
-            new_class_dict[name] = value
-
-        new_class_dict[SEP_ATTR] = sep
-        new_class_dict[CONVERTER_ATTR] = converter
-        new_class_dict[ITEM_TYPE_ATTR] = item_type
-
-        return super().__new__(mcs, cls, bases, new_class_dict)
-
-    @staticmethod
-    def check_type_equals(type_to_check: Any, allowed_type: Type[Any]):
-        if isinstance(type_to_check, TypeVar):
-            if len(type_to_check.__constraints__) > 1:
-                raise TypeError(f'Only {allowed_type.__name__} is allowed, '
-                                f'not {type_to_check} {type_to_check.__constraints__}')
-
-            elif type_to_check.__constraints__[0] is not allowed_type:
-                raise TypeError(f'Unexpected type {type_to_check.__constraints__[0].__name__}, '
-                                f'allowed type: {allowed_type.__name__}')
-
-        elif type_to_check is not allowed_type:
-            raise TypeError(f'Unexpected type {getattr(type_to_check, "__name__", type_to_check)}'
-                            f', allowed type: {allowed_type.__name__}')
-
-
-class StrItem(BaseStrEnumItem):
-    # https://youtrack.jetbrains.com/issue/PY-24426
-    # noinspection PyMissingConstructor
-    def __init__(self, sep: AnyStr = None, converter: Callable[[str], str] = None):
-        self.sep = sep
-        self.converter = converter
-
-    def generate_value(self, name: str) -> str:
-        if self.converter:
-            name = self.converter(name)
-        if self.sep:
-            name = name.replace('_', self.sep)
-
+    def _generate_next_value_(cls, name, *_):
+        if cls.__values_generator__ is not None:
+            return cls.__values_generator__(name)
         return name
-
-
-class BytesItem(BaseStrEnumItem):
-    # https://youtrack.jetbrains.com/issue/PY-24426
-    # noinspection PyMissingConstructor
-    def __init__(self, sep: AnyStr = None, converter: Callable[[bytes], bytes] = None):
-        self.sep = sep
-        self.converter = converter
-
-    def generate_value(self, name: str) -> bytes:
-        name = bytes(name, 'utf8')
-
-        if self.converter:
-            name = self.converter(name)
-        if self.sep:
-            name = name.replace(b'_', self.sep)
-
-        return name
-
-
-auto_str = StrItem
-auto_bytes = BytesItem
-
-
-class StrEnum(str, BaseAnyStrEnum, metaclass=AnyStrEnumMeta):
-    __sep__: str = None
-    __converter__: Callable[[str], str] = None
-    __item_type__ = StrItem
 
     def __str__(self):
         return self.value
 
 
-class BytesEnum(bytes, BaseAnyStrEnum, metaclass=AnyStrEnumMeta):
-    __sep__: bytes = None
-    __converter__: Callable[[bytes], bytes] = None
-    __item_type__: Type[BaseStrEnumItem] = BytesItem
+class BytesEnum(bytes, BaseAnyStrEnum, metaclass=TypedEnumMeta):
+    __values_generator__: Callable[[bytes], bytes] = None
 
     def __str__(self):
         return str(self.value)
+
+    @classmethod
+    def _generate_next_value_(cls, name, *_):
+        name = bytes(name, 'utf-8')
+
+        if cls.__values_generator__ is not None:
+            name = cls.__values_generator__(name)
+        return name
+
+
+class IntEnum(int, BaseTypedEnum, metaclass=TypedEnumMeta):
+    __values_generator__: Callable[[str, ...], int] = None

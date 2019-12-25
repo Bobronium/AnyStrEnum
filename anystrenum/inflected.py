@@ -17,7 +17,6 @@ __all__ = [
     'PluralizeStrEnum',
     'TableizeStrEnum',
     'UnderscoreStrEnum',
-
     'CamelizeByteEnum',
     'DasherizeByteEnum',
     'HumanizeByteEnum',
@@ -70,32 +69,32 @@ class TableizeStrEnum(StrEnum):
 
 
 class CamelizeByteEnum(BytesEnum):
-    __converter__ = to_bytes(inflection.camelize)
+    __values_generator__ = to_bytes(inflection.camelize)
 
 
 class TitelizeByteEnum(BytesEnum):
-    __converter__ = to_bytes(inflection.titleize)
+    __values_generator__ = to_bytes(inflection.titleize)
 
 
 class HumanizeByteEnum(BytesEnum):
-    __converter__ = to_bytes(inflection.humanize)
+    __values_generator__ = to_bytes(inflection.humanize)
 
 
 class DasherizeByteEnum(BytesEnum):
-    __converter__ = to_bytes(inflection.dasherize)
+    __values_generator__ = to_bytes(inflection.dasherize)
 
 
 class UnderscoreByteEnum(BytesEnum):
-    __converter__ = to_bytes(inflection.underscore)
+    __values_generator__ = to_bytes(inflection.underscore)
 
 
 class PluralizeByteEnum(BytesEnum):
-    __converter__ = to_bytes(inflection.pluralize)
+    __values_generator__ = to_bytes(inflection.pluralize)
 
 
 class SingularizeByteEnum(BytesEnum):
-    __converter__ = to_bytes(inflection.singularize)
+    __values_generator__ = to_bytes(inflection.singularize)
 
 
 class TableizeByteEnum(BytesEnum):
-    __converter__ = to_bytes(inflection.tableize)
+    __values_generator__ = to_bytes(inflection.tableize)
